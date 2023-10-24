@@ -6,7 +6,8 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 # we should put the data processing in like processing.py file
-symbol = "AAPL"
+symbol = input("Enter a stock symbol: ")
+# symbol = "TSLA"
 
 # fetch historical data for processing?
 apple_data = yf.download(symbol, start="2020-01-01", end="2023-01-01")
