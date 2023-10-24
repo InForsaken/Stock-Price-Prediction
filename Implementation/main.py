@@ -3,6 +3,7 @@ import yfinance as yf
 from keras.models import Sequential
 from keras.layers import SimpleRNN, Dense
 from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
 
 # we should put the data processing in like processing.py file
 symbol = "AAPL"
@@ -45,3 +46,23 @@ model.compile(optimizer="RMSProp", loss="mean_squared_error")
 
 # train model
 model.fit(X_train, y_train, epochs=50, batch_size=32)
+
+# predict the test data
+y_pred = model.predict(X_test)
+
+# inverse transform the scaled data to the original scale
+y_test_actual = scaler.inverse_transform(y_test)
+y_pred_actual = scaler.inverse_transform(y_pred)
+
+# create a time series index for the test data
+date_range = stock_data.index[-len(y_test):]
+
+# plot the actual and predicted prices
+plt.figure(figsize=(12, 6))
+plt.plot(date_range, y_test_actual, label="Actual Price")
+plt.plot(date_range, y_pred_actual, label="Predicted Price")
+plt.xlabel("Date")
+plt.ylabel("Stock Price")
+plt.title(f"{symbol} Stock Price Prediction")
+plt.legend()
+plt.show()
