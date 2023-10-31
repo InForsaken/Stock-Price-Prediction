@@ -21,7 +21,7 @@ Week 7-8: Model Evaluation and Tuning
   ● Create visualizations to better understand the model's predictions and performance. – Steven
 Week 9-10: Deployment and Documentation
   ● Once satisfied with the model's performance, deploy it to a test environment.
-  ● Create a user-friendly interface for interacting with the model (if needed).
+  ● Create a user-friendly interface for interacting with the model (if needed). - Oliver Pulley
   ● Document the entire project, including data sources, preprocessing steps, model architecture, and deployment instructions.
 Week 11-12: Final Testing and Presentation
   ● Perform final testing to ensure the model works as expected.
