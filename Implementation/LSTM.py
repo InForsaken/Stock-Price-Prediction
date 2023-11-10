@@ -38,6 +38,7 @@ def create_sequences(data, sequence_length):
 def build_model(sequence_length):
     model = Sequential()
     model.add(LSTM(150, activation="relu", input_shape=(sequence_length, 1)))
+    # model.add(Dropout(0.2))  # dropout layer to prevent overfitting
     model.add(Dense(1))
     model.compile(optimizer="RMSprop", loss="mean_squared_error")
     return model
