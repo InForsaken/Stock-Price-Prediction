@@ -37,25 +37,47 @@ class StockPricePredictor:
             sequences.append(seq)
         return np.array(sequences)
 
+    # def preprocess_data(self, stock_data):
+    #     if stock_data is None:
+    #         return None, None, None, None, None
+
+    #     # scales data
+    #     scaler, scaled_data = self.scale_data(stock_data["Close"].values)
+    #     train_size = int(len(scaled_data) * 0.8)  # split data for test/train
+
+    #     # creates sequences
+    #     X_train = self.create_sequence_sets(scaled_data[:train_size])
+    #     X_test = self.create_sequence_sets(scaled_data[train_size:])
+    #     X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+    #     X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
+    #     # preps target
+    #     y_train = scaled_data[self.sequence_length:train_size]
+    #     y_test = scaled_data[self.sequence_length + train_size:]
+
+    #     return scaler, X_train, X_test, y_train, y_test
     def preprocess_data(self, stock_data):
         if stock_data is None:
             return None, None, None, None, None
 
-        # scales data
-        scaler, scaled_data = self.scale_data(stock_data["Close"].values)
+        # calculate EMA and scale data
+        ema_data = stock_data["Close"].ewm(span=self.sequence_length, adjust=False).mean()
+        scaler, scaled_data = self.scale_data(ema_data.values)
         train_size = int(len(scaled_data) * 0.8)  # split data for test/train
 
-        # creates sequences
-        X_train = self.create_sequence_sets(scaled_data[:train_size])
-        X_test = self.create_sequence_sets(scaled_data[train_size:])
-        X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
-        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+        # create sequences and targets
+        X, y = [], []
+        for i in range(len(scaled_data) - self.sequence_length):
+            X.append(scaled_data[i:i+self.sequence_length])
+            y.append(scaled_data[i+self.sequence_length])
 
-        # preps target
-        y_train = scaled_data[self.sequence_length:train_size]
-        y_test = scaled_data[self.sequence_length + train_size:]
+        X_train = np.array(X[:train_size])
+        y_train = np.array(y[:train_size])
+        X_test = np.array(X[train_size:])
+        y_test = np.array(y[train_size:])
 
         return scaler, X_train, X_test, y_train, y_test
+
 
     def build_model(self):
         # build LSTM model with dropout layers
