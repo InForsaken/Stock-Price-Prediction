@@ -1,7 +1,7 @@
 import numpy as np
 import yfinance as yf
 from keras.models import Sequential
-from keras.layers import SimpleRNN, Dense
+from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
@@ -10,12 +10,12 @@ symbol = input("Enter a stock symbol: ")
 # symbol = "TSLA"
 
 # fetch historical data for processing?
-apple_data = yf.download(symbol, start="2020-01-01", end="2023-01-01")
-apple_data = apple_data.ffill() # preproc
+stock_data = yf.download(symbol, start="2020-01-01", end="2023-01-01")
+stock_data = stock_data.ffill()  # preproc
 
 # scales data
 scaler = MinMaxScaler()
-scaled_data = scaler.fit_transform(apple_data["Close"].values.reshape(-1, 1))
+scaled_data = scaler.fit_transform(stock_data["Close"].values.reshape(-1, 1))
 train_size = int(len(scaled_data) * 0.8)  # split data for test/train
 train_data, test_data = scaled_data[:train_size], scaled_data[train_size:]
 
@@ -26,6 +26,7 @@ def create_sequences(data, sequence_length):
         seq = data[i:i+sequence_length]
         sequences.append(seq)
     return np.array(sequences)
+
 
 # creates sequences
 sequence_length = 10
@@ -41,9 +42,9 @@ y_test = test_data[sequence_length:]
 
 # build rnn model
 model = Sequential()
-model.add(SimpleRNN(50, activation="relu", input_shape=(X_train.shape[1], 1)))
+model.add(LSTM(50, activation="relu", input_shape=(X_train.shape[1], 1)))
 model.add(Dense(1))
-model.compile(optimizer="RMSProp", loss="mean_squared_error")
+model.compile(optimizer="RMSprop", loss="mean_squared_error")
 
 # train model
 model.fit(X_train, y_train, epochs=50, batch_size=32)
