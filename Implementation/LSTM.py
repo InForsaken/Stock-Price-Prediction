@@ -62,7 +62,7 @@ def plot_predictions(stock_data, date_range, y_test_actual, y_pred_actual, symbo
              f'Actual: {y_test_actual[-1][0]:.2f}', ha='left', va='center', fontsize=10)
 
     plt.text(date_range[-1] + pd.DateOffset(days=3), y_pred_actual[-1][0] - 2,
-             f'Predicted: {y_pred_actual[-1][0]:.2f}', ha='left', va='center', fontsize=10)
+             f'Predicted: {y_pred_actual[-1][0]:.2f}', ha='right', va='center', fontsize=10)
 
     plt.xlabel("Date")
     plt.ylabel("Stock Price")
