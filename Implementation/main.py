@@ -3,6 +3,7 @@ import yfinance as yf
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 
 # we should put the data processing in like processing.py file
@@ -47,14 +48,19 @@ model.add(Dense(1))
 model.compile(optimizer="RMSprop", loss="mean_squared_error")
 
 # train model
-model.fit(X_train, y_train, epochs=50, batch_size=32)
+model.fit(X_train, y_train, epochs=100, batch_size=32)
 
 # predict the test data
 y_pred = model.predict(X_test)
 
+
 # inverse transform the scaled data to the original scale
 y_test_actual = scaler.inverse_transform(y_test)
 y_pred_actual = scaler.inverse_transform(y_pred)
+
+mse = np.sqrt(mean_squared_error(y_test_actual,y_pred_actual))
+print(f"Root Mean Squared Error is: {mse}")
+
 
 # create a time series index for the test data
 date_range = stock_data.index[-len(y_test):]
