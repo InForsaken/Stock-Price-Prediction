@@ -2,23 +2,23 @@ Week 1-2: Project Initialization and Data Collection
   ● Define project goals and objectives: Clearly outline what you want to achieve with your stock prediction model and set performance metrics.
   ● Identify roles and responsibilities within the group. Assign tasks like data collection, preprocessing, model development, and evaluation(Giri).
   ● Collect historical stock price data, financial news, and other relevant data sources. Ensure data is consistent and of good quality.
-  ● Familiarise yourself with LSTM and EMA concepts. Discuss the role of EMA in stock prediction. - Steven
+  ● Familiarise yourself with LSTM and EMA concepts. Discuss the role of EMA in stock prediction. - Steven/Rishabh
   ● Set up a version control system (e.g., Git) to manage your code and collaborate effectively. - Steven
 Week 3-4: Data Preprocessing and Feature Engineering
   ● Clean and preprocess the data. Handle missing values, outliers, and perform necessary data transformations. – Steven/Rishabh
-  ● Calculate EMA indicators for stock prices. Experiment with different EMA window sizes to see what works best. - Steven
+  ● Calculate EMA indicators for stock prices. Experiment with different EMA window sizes to see what works best. - Rishabh
   ● Create features from the data - Oliver Pulley 
   ● Split the data into training, validation, and test sets. Consider using a rolling window approach for time series data. – Steven 
 Week 5-6: Model Development and Training
-  ● Develop an LSTM-based neural network architecture for stock prediction. Experiment with different network architectures and hyperparameters. - Steven
+  ● Develop an LSTM-based neural network architecture for stock prediction. Experiment with different network architectures and hyperparameters. - Rishabh/Steven
   ● Implement a loss function, such as mean squared error (MSE), to optimize the model for predicting stock prices.- Steven 
   ● Train the model on the training data and validate it using the validation set. - Steven
   ● Implement a backtesting strategy to assess the model's performance on historical data. – Steven/Rishabh
 Week 7-8: Model Evaluation and Tuning
   ● Evaluate the model's performance using metrics like Mean Absolute Error (MAE), Root Mean Squared Error (RMSE), and accuracy. – Steven 
-  ● Perform hyperparameter tuning to optimize the model's performance. – Steven
-  ● Consider implementing regularization techniques to prevent overfitting. – Steven
-  ● Create visualizations to better understand the model's predictions and performance. – Steven
+  ● Perform hyperparameter tuning to optimize the model's performance. – Rishabh
+  ● Consider implementing regularization techniques to prevent overfitting. – Steven/Rishabh
+  ● Create visualizations to better understand the model's predictions and performance. – Steven/Rishabh/Oliver
 Week 9-10: Deployment and Documentation
   ● Once satisfied with the model's performance, deploy it to a test environment.
   ● Create a user-friendly interface for interacting with the model (if needed). - Oliver Pulley
