@@ -5,8 +5,10 @@ from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
 import dash
 from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import pandas as pd
+import dash_bootstrap_components as dbc
+
 
 # Function to fetch stock data
 def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
@@ -14,6 +16,12 @@ def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
     stock_data = stock_data.ffill()
     stock_data['EMA'] = stock_data['Close'].ewm(span=12, adjust=False).mean()
     return stock_data
+
+# Function to fetch company data
+def fetch_company_data(symbol):
+    ticker = yf.Ticker(symbol)
+    info = ticker.info
+    return info
 
 # Function to preprocess data
 def preprocess_data(stock_data, sequence_length=25):
@@ -60,48 +68,75 @@ def predict_data(model, X_test):
 def inverse_transform(scaler, data):
     return scaler.inverse_transform(data)
 
-# Initialize Dash app
-app = dash.Dash(__name__)
+# External CSS styles
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-# Define app layout
+# Initialize Dash app with external stylesheets
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+# Define app layout with improved styling
 app.layout = html.Div([
-    html.H1("Stock Price Prediction with LSTM"),
-    dcc.Input(id='symbol-input', type='text', value='AAPL', placeholder='Enter a stock symbol'),
-    dcc.Graph(id='prediction-plot')
-])
+    html.H1("Stock Price Prediction with LSTM", style={'textAlign': 'center'}),
+    dcc.Input(id='symbol-input', type='text', value='AAPL', placeholder='Enter a stock symbol', style={'marginBottom': '10px'}),
+    html.Button('Search', id='search-button', n_clicks=0, style={'marginBottom': '20px'}),
+    html.Div(id='company-info', style={'marginBottom': '20px'}),
+    dcc.Graph(id='prediction-plot'),
+], style={'width': '80%', 'margin': 'auto'})
+
+
+# Update the company info based on user input
+@app.callback(
+    Output('company-info', 'children'),
+    [Input('search-button', 'n_clicks')],
+    [State('symbol-input', 'value')]
+)
+def update_company_info(n_clicks, symbol_input):
+    if n_clicks > 0:
+        symbol = symbol_input.upper()
+        company_data = fetch_company_data(symbol)
+        return html.P([
+            html.H2(company_data['longName']),
+            html.P(company_data['longBusinessSummary']),
+        ])
+    else:
+        return dash.no_update
 
 # Update the graph based on user input
 @app.callback(
     Output('prediction-plot', 'figure'),
-    [Input('symbol-input', 'value')]
+    [Input('search-button', 'n_clicks')],
+    [State('symbol-input', 'value')]
 )
-def update_plot(symbol_input):
-    symbol = symbol_input.upper()
-    stock_data = fetch_data(symbol)
-    X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
-    model = build_model(sequence_length=25)
-    train_model(model, X_train, y_train)
-    y_pred = predict_data(model, X_test)
-    y_test_actual = inverse_transform(scaler, y_test)
-    y_pred_actual = inverse_transform(scaler, y_pred)
-    date_range = stock_data.index[-len(y_test):]
+def update_plot(n_clicks, symbol_input):
+    if n_clicks > 0:
+        symbol = symbol_input.upper()
+        stock_data = fetch_data(symbol)
+        X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
+        model = build_model(sequence_length=25)
+        train_model(model, X_train, y_train)
+        y_pred = predict_data(model, X_test)
+        y_test_actual = inverse_transform(scaler, y_test)
+        y_pred_actual = inverse_transform(scaler, y_pred)
+        date_range = stock_data.index[-len(y_test):]
 
-    # Plotly graph for Dash
-    figure = {
-        'data': [
-            {'x': stock_data.index, 'y': stock_data['EMA'], 'type': 'line', 'name': 'Actual dataset (Entire Dataset)'},
-            {'x': date_range, 'y': y_test_actual.flatten(), 'type': 'line', 'name': 'Actual (Test Data)'},
-            {'x': date_range, 'y': y_pred_actual.flatten(), 'type': 'line', 'name': 'Predicted EMA'},
-        ],
-        'layout': {
-            'xaxis': {'title': 'Date'},
-            'yaxis': {'title': 'Stock Price'},
-            'title': f"{symbol} Stock Price Prediction",
-            'legend': {'x': 0, 'y': 1}
+        # Plotly graph for Dash
+        figure = {
+            'data': [
+                {'x': stock_data.index, 'y': stock_data['EMA'], 'type': 'line', 'name': 'Actual dataset (Entire Dataset)'},
+                {'x': date_range, 'y': y_test_actual.flatten(), 'type': 'line', 'name': 'Actual (Test Data)'},
+                {'x': date_range, 'y': y_pred_actual.flatten(), 'type': 'line', 'name': 'Predicted EMA'},
+            ],
+            'layout': {
+                'xaxis': {'title': 'Date'},
+                'yaxis': {'title': 'Stock Price'},
+                'title': f"{symbol} Stock Price Prediction",
+                'legend': {'x': 0, 'y': 1}
+            }
         }
-    }
 
-    return figure
+        return figure
+    else:
+        return dash.no_update
 
 # Run the app
 if __name__ == '__main__':
