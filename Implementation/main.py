@@ -6,6 +6,9 @@ from dash.dependencies import Input, Output, State
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
+import io
+import base64
+import matplotlib.pyplot as plt
 
 
 # Function to fetch stock data
@@ -103,13 +106,23 @@ app.layout = html.Div([
     html.Div(id="company-info", style={"marginBottom": "20px"}),
 
     dcc.Graph(id="prediction-plot"),
+
+    html.A(
+        html.Button("Download Graph"),
+        id="download-link",
+        download="prediction_graph.png",
+        href="",
+        target="_blank",
+        style={"marginLeft": "20px"}
+    )
 ], style={"width": "80%", "margin": "auto"})
 
 
 # Update the company info and plot based on user input
 @app.callback(
     [Output("company-info", "children"),
-     Output("prediction-plot", "figure")],
+     Output("prediction-plot", "figure"),
+     Output("download-link", "href")],
     [Input("search-button", "n_clicks")],
     [State("symbol-input", "value"),
      State("date-picker", "start_date"),
@@ -143,15 +156,30 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
             }
         }
 
+        # Update download link
+        img_data = io.BytesIO()
+        plt.figure(figsize=(8, 6))
+        plt.plot(stock_data.index, stock_data["EMA"], label="Dataset")
+        plt.plot(date_range, y_test_actual.flatten(), label="Actual Data")
+        plt.plot(date_range, y_pred_actual.flatten(), label="Predicted EMA")
+        plt.xlabel("Date")
+        plt.ylabel("Stock Price")
+        plt.title(f"{symbol} Stock Price Prediction")
+        plt.legend()
+        plt.savefig(img_data, format="png")
+        img_data.seek(0)
+        base64_img = base64.b64encode(img_data.read()).decode("utf-8")
+        download_href = f"data:image/png;base64,{base64_img}"
+
         # Update both outputs
         company_data = fetch_company_data(symbol)
         company_info = [html.P([html.H2(company_data["longName"]),
                                 html.P(company_data["longBusinessSummary"])])]
 
-        return company_info, figure
+        return company_info, figure, download_href
     else:
         # Return no update for both outputs if no clicks
-        return dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update
 
 
 # Run the app
