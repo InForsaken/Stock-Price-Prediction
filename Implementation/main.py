@@ -10,7 +10,6 @@ import io
 import base64
 import matplotlib.pyplot as plt
 
-
 # Function to fetch stock data
 def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
     stock_data = yf.download(symbol, start=start_date, end=end_date)
@@ -18,13 +17,11 @@ def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
     stock_data["EMA"] = stock_data["Close"].ewm(span=12, adjust=False).mean()
     return stock_data
 
-
 # Function to fetch company data
 def fetch_company_data(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
     return info
-
 
 # Function to preprocess data
 def preprocess_data(stock_data, sequence_length=25):
@@ -43,7 +40,6 @@ def preprocess_data(stock_data, sequence_length=25):
 
     return X_train, X_test, y_train, y_test, scaler
 
-
 # Function to create sequences
 def create_sequences(data, sequence_length):
     sequences = []
@@ -51,7 +47,6 @@ def create_sequences(data, sequence_length):
         seq = data[i:i + sequence_length]
         sequences.append(seq)
     return np.array(sequences)
-
 
 # Function to build LSTM model
 def build_model(sequence_length):
@@ -61,21 +56,17 @@ def build_model(sequence_length):
     model.compile(optimizer="RMSprop", loss="mean_squared_error")
     return model
 
-
 # Function to train the model
 def train_model(model, X_train, y_train, epochs=100, batch_size=32):
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size)
-
 
 # Function to predict data
 def predict_data(model, X_test):
     return model.predict(X_test)
 
-
 # Function to inverse transform scaled data
 def inverse_transform(scaler, data):
     return scaler.inverse_transform(data)
-
 
 # External CSS styles
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
@@ -84,40 +75,44 @@ external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Define app layout with improved styling
-app.layout = html.Div([
-    html.H1("Stock Price Prediction with LSTM", style={"textAlign": "center"}),
+app.layout = dcc.Loading(
+    type="circle",
+    children=[
+        html.Div([
+            html.H1("Stock Price Prediction with LSTM", style={"textAlign": "center"}),
 
-    dcc.Input(id="symbol-input", type="text", value="AAPL", placeholder="Enter a stock symbol",
-              style={"marginBottom": "10px"}),
+            dcc.Input(id="symbol-input", type="text", value="AAPL", placeholder="Enter a stock symbol",
+                      style={"marginBottom": "10px"}),
 
-    dcc.DatePickerRange(
-        id="date-picker",
-        start_date="2015-01-01",
-        end_date="2023-01-01",
-        display_format="YYYY-MM-DD",
-        style={"marginBottom": "10px", "marginLeft": "20px"}
-    ),
+            dcc.DatePickerRange(
+                id="date-picker",
+                start_date="2015-01-01",
+                end_date="2023-01-01",
+                display_format="YYYY-MM-DD",
+                style={"marginBottom": "10px", "marginLeft": "20px"}
+            ),
 
-    dcc.Input(id="epoch-input", type="number", value=100, placeholder="Enter the number of epochs",
-              style={"marginBottom": "10px", "marginLeft": "20px"}),
+            dcc.Input(id="epoch-input", type="number", value=100, placeholder="Enter the number of epochs",
+                      style={"marginBottom": "10px", "marginLeft": "20px"}),
 
-    html.Button("Search", id="search-button", n_clicks=0, style={"marginBottom": "20px", "marginLeft": "20px"}),
+            html.Button("Search", id="search-button", n_clicks=0, style={"marginBottom": "20px", "marginLeft": "20px"}),
 
-    html.Div(id="company-info", style={"marginBottom": "20px"}),
+            html.Div(id="company-info", style={"marginBottom": "20px"}),
 
-    dcc.Graph(id="prediction-plot"),
+            dcc.Graph(id="prediction-plot"),
 
-    html.A(
-        html.Button("Download Graph"),
-        id="download-link",
-        download="prediction_graph.png",
-        href="",
-        target="_blank",
-        style={"marginLeft": "20px"}
-    ),
-    dcc.Graph(id="loss-plot"),
-], style={"width": "80%", "margin": "auto"})
-
+            html.A(
+                html.Button("Download Graph"),
+                id="download-link",
+                download="prediction_graph.png",
+                href="",
+                target="_blank",
+                style={"marginLeft": "20px"}
+            ),
+            dcc.Graph(id="loss-plot"),
+        ], style={"width": "80%", "margin": "auto"})
+    ]
+)
 
 # Update the company info and plot based on user input
 @app.callback(
