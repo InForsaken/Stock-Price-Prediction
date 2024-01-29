@@ -80,7 +80,7 @@ def inverse_transform(scaler, data):
 # External CSS styles
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
-# Initialize Dash app with external stylesheets
+# Initialise Dash app with external stylesheets
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Define app layout with improved styling
@@ -114,7 +114,8 @@ app.layout = html.Div([
         href="",
         target="_blank",
         style={"marginLeft": "20px"}
-    )
+    ),
+    dcc.Graph(id="loss-plot"),
 ], style={"width": "80%", "margin": "auto"})
 
 
@@ -122,7 +123,8 @@ app.layout = html.Div([
 @app.callback(
     [Output("company-info", "children"),
      Output("prediction-plot", "figure"),
-     Output("download-link", "href")],
+     Output("download-link", "href"),
+     Output("loss-plot", "figure")],
     [Input("search-button", "n_clicks")],
     [State("symbol-input", "value"),
      State("date-picker", "start_date"),
@@ -135,7 +137,11 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         stock_data = fetch_data(symbol, start_date, end_date)
         X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
         model = build_model(sequence_length=25)
-        train_model(model, X_train, y_train, epochs=epochs)
+
+        # Train the model and get training history
+        history = model.fit(X_train, y_train, epochs=epochs, batch_size=32)
+
+        # Get the predicted data and actual data
         y_pred = predict_data(model, X_test)
         y_test_actual = inverse_transform(scaler, y_test)
         y_pred_actual = inverse_transform(scaler, y_pred)
@@ -152,6 +158,19 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
                 "xaxis": {"title": "Date"},
                 "yaxis": {"title": "Stock Price"},
                 "title": f"{symbol} Stock Price Prediction",
+                "legend": {"x": 0, "y": 1}
+            }
+        }
+
+        # Plotly graph for loss
+        loss_figure = {
+            "data": [
+                {"x": list(range(1, epochs + 1)), "y": history.history['loss'], "type": "line", "name": "Training Loss"},
+            ],
+            "layout": {
+                "xaxis": {"title": "Epoch"},
+                "yaxis": {"title": "Loss"},
+                "title": "Training Loss Over Time",
                 "legend": {"x": 0, "y": 1}
             }
         }
@@ -176,11 +195,10 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         company_info = [html.P([html.H2(company_data["longName"]),
                                 html.P(company_data["longBusinessSummary"])])]
 
-        return company_info, figure, download_href
+        return company_info, figure, download_href, loss_figure
     else:
-        # Return no update for both outputs if no clicks
-        return dash.no_update, dash.no_update, dash.no_update
-
+        # Return no update for all outputs if no clicks
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 # Run the app
 if __name__ == "__main__":
