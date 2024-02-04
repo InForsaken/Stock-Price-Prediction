@@ -155,8 +155,10 @@ app.layout = dcc.Loading(
                     target="_blank",
                     style={
                         "marginLeft": "20px",
-                        "background-color": "#e74c3c",
-                        "color": "#fff",
+                        "marginBottom": "20px",
+                        "background-color": "#bdf9fb",
+                        "color":"#ffffff",
+                        "font-size":"30px",
                     },
                 ),
                 dcc.Graph(id="loss-plot"),
@@ -313,8 +315,6 @@ def get_chat_output(stock_info):
                 ),
             ]
         )
-
-
 # Run the app
 if __name__ == "__main__":
     app.run_server(debug=True)
