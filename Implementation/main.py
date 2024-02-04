@@ -18,11 +18,13 @@ def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
     stock_data["EMA"] = stock_data["Close"].ewm(span=12, adjust=False).mean()
     return stock_data
 
+
 # Function to fetch company data
 def fetch_company_data(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
     return info
+
 
 # Function to preprocess data
 def preprocess_data(stock_data, sequence_length=25):
@@ -41,13 +43,15 @@ def preprocess_data(stock_data, sequence_length=25):
 
     return X_train, X_test, y_train, y_test, scaler
 
+
 # Function to create sequences
 def create_sequences(data, sequence_length):
     sequences = []
     for i in range(len(data) - sequence_length):
-        seq = data[i:i + sequence_length]
+        seq = data[i : i + sequence_length]
         sequences.append(seq)
     return np.array(sequences)
+
 
 # Function to build LSTM model
 def build_model(sequence_length):
@@ -57,17 +61,21 @@ def build_model(sequence_length):
     model.compile(optimizer="RMSprop", loss="mean_squared_error")
     return model
 
+
 # Function to train the model
 def train_model(model, X_train, y_train, epochs=100, batch_size=32):
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size)
+
 
 # Function to predict data
 def predict_data(model, X_test):
     return model.predict(X_test)
 
+
 # Function to inverse transform scaled data
 def inverse_transform(scaler, data):
     return scaler.inverse_transform(data)
+
 
 # Function to get real-time stock information
 def get_stock_info(symbol):
@@ -76,6 +84,7 @@ def get_stock_info(symbol):
         return stock_info
     except:
         return None
+
 
 # External CSS styles
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
@@ -87,56 +96,93 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = dcc.Loading(
     type="circle",
     children=[
-        html.Div([
-            html.H1("Stock Price Prediction with LSTM", style={"textAlign": "center", "color": "#3498db"}),
-
-            dcc.Input(id="symbol-input", type="text", value="AAPL", placeholder="Enter a stock symbol",
-                      style={"marginBottom": "10px", "color": "#2c3e50"}),
-
-            dcc.DatePickerRange(
-                id="date-picker",
-                start_date="2015-01-01",
-                end_date="2023-01-01",
-                display_format="YYYY-MM-DD",
-                style={"marginBottom": "10px", "marginLeft": "20px", "color": "#2c3e50"}
-            ),
-
-            dcc.Input(id="epoch-input", type="number", value=100, placeholder="Enter the number of epochs",
-                      style={"marginBottom": "10px", "marginLeft": "20px", "color": "#2c3e50"}),
-
-            html.Button("Search", id="search-button", n_clicks=0, style={"marginBottom": "20px", "marginLeft": "20px", "background-color": "#2ecc71", "color": "#fff"}),
-
-            html.Div(id="company-info", style={"marginBottom": "20px", "color": "#2c3e50"}),
-
-            dcc.Graph(id="prediction-plot"),
-
-            html.A(
-                html.Button("Download Graph"),
-                id="download-link",
-                download="prediction_graph.png",
-                href="",
-                target="_blank",
-                style={"marginLeft": "20px", "background-color": "#e74c3c", "color": "#fff"}
-            ),
-            dcc.Graph(id="loss-plot"),
-            
-            html.Div(id="chat-output", style={"marginTop": "20px"})
-        ], style={"width": "80%", "margin": "auto", "background-color": "#ecf0f1"})
-    ]
+        html.Div(
+            [
+                html.H1(
+                    "Stock Price Prediction with LSTM",
+                    style={"textAlign": "center", "color": "#3498db"},
+                ),
+                dcc.Input(
+                    id="symbol-input",
+                    type="text",
+                    value="AAPL",
+                    placeholder="Enter a stock symbol",
+                    style={"marginBottom": "10px", "color": "#2c3e50"},
+                ),
+                dcc.DatePickerRange(
+                    id="date-picker",
+                    start_date="2015-01-01",
+                    end_date="2023-01-01",
+                    display_format="YYYY-MM-DD",
+                    style={
+                        "marginBottom": "10px",
+                        "marginLeft": "20px",
+                        "color": "#2c3e50",
+                    },
+                ),
+                dcc.Input(
+                    id="epoch-input",
+                    type="number",
+                    value=100,
+                    placeholder="Enter the number of epochs",
+                    style={
+                        "marginBottom": "10px",
+                        "marginLeft": "20px",
+                        "color": "#2c3e50",
+                    },
+                ),
+                html.Button(
+                    "Search",
+                    id="search-button",
+                    n_clicks=0,
+                    style={
+                        "marginBottom": "20px",
+                        "marginLeft": "20px",
+                        "background-color": "#2ecc71",
+                        "color": "#fff",
+                    },
+                ),
+                html.Div(
+                    id="company-info",
+                    style={"marginBottom": "20px", "color": "#2c3e50"},
+                ),
+                dcc.Graph(id="prediction-plot"),
+                html.A(
+                    html.Button("Download Graph"),
+                    id="download-link",
+                    download="prediction_graph.png",
+                    href="",
+                    target="_blank",
+                    style={
+                        "marginLeft": "20px",
+                        "background-color": "#e74c3c",
+                        "color": "#fff",
+                    },
+                ),
+                dcc.Graph(id="loss-plot"),
+                html.Div(id="chat-output", style={"marginTop": "20px"}),
+            ],
+            style={"width": "80%", "margin": "auto", "background-color": "#ecf0f1"},
+        )
+    ],
 )
 
 # Update the company info, plot, and real-time stock info based on user input
 @app.callback(
-    [Output("company-info", "children"),
-     Output("prediction-plot", "figure"),
-     Output("download-link", "href"),
-     Output("loss-plot", "figure"),
-     Output("chat-output", "children")],
+    [
+        Output("company-info", "children"),
+        Output("prediction-plot", "figure"),
+        Output("download-link", "href"),
+        Output("loss-plot", "figure"),
+        Output("chat-output", "children"),
+    ],
     [Input("search-button", "n_clicks")],
-    [State("symbol-input", "value"),
-     State("date-picker", "start_date"),
-     State("date-picker", "end_date"),
-     State("epoch-input", "value")]
+    [
+        State("symbol-input", "value"),
+        State("date-picker", "start_date"),
+        State("date-picker", "end_date"),
+        State("epoch-input", "value"),
+    ],
 )
 def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs):
     if n_clicks > 0:
@@ -152,34 +198,54 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         y_pred = predict_data(model, X_test)
         y_test_actual = inverse_transform(scaler, y_test)
         y_pred_actual = inverse_transform(scaler, y_pred)
-        date_range = stock_data.index[-len(y_test):]
+        date_range = stock_data.index[-len(y_test) :]
 
         # Plotly graph for Dash
         figure = {
             "data": [
-                {"x": stock_data.index, "y": stock_data["EMA"], "type": "line", "name": "Dataset"},
-                {"x": date_range, "y": y_test_actual.flatten(), "type": "line", "name": "Actual Data"},
-                {"x": date_range, "y": y_pred_actual.flatten(), "type": "line", "name": "Predicted EMA"},
+                {
+                    "x": stock_data.index,
+                    "y": stock_data["EMA"],
+                    "type": "line",
+                    "name": "Dataset",
+                },
+                {
+                    "x": date_range,
+                    "y": y_test_actual.flatten(),
+                    "type": "line",
+                    "name": "Actual Data",
+                },
+                {
+                    "x": date_range,
+                    "y": y_pred_actual.flatten(),
+                    "type": "line",
+                    "name": "Predicted EMA",
+                },
             ],
             "layout": {
                 "xaxis": {"title": "Date"},
                 "yaxis": {"title": "Stock Price"},
                 "title": f"{symbol} Stock Price Prediction",
-                "legend": {"x": 0, "y": 1}
-            }
+                "legend": {"x": 0, "y": 1},
+            },
         }
 
         # Plotly graph for loss
         loss_figure = {
             "data": [
-                {"x": list(range(1, epochs + 1)), "y": history.history['loss'], "type": "line", "name": "Training Loss"},
+                {
+                    "x": list(range(1, epochs + 1)),
+                    "y": history.history["loss"],
+                    "type": "line",
+                    "name": "Training Loss",
+                },
             ],
             "layout": {
                 "xaxis": {"title": "Epoch"},
                 "yaxis": {"title": "Loss"},
                 "title": "Training Loss Over Time",
-                "legend": {"x": 0, "y": 1}
-            }
+                "legend": {"x": 0, "y": 1},
+            },
         }
 
         # Update download link
@@ -199,8 +265,14 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
 
         # Update company info
         company_data = fetch_company_data(symbol)
-        company_info = [html.P([html.H2(company_data["longName"]),
-                                html.P(company_data["longBusinessSummary"])])]
+        company_info = [
+            html.P(
+                [
+                    html.H2(company_data["longName"]),
+                    html.P(company_data["longBusinessSummary"]),
+                ]
+            )
+        ]
 
         # Get real-time stock information
         stock_info = get_stock_info(symbol)
@@ -209,25 +281,39 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         return company_info, figure, download_href, loss_figure, chat_output
     else:
         # Return no update for all outputs if no clicks
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return (
+            dash.no_update,
+            dash.no_update,
+            dash.no_update,
+            dash.no_update,
+            dash.no_update,
+        )
+
 
 # Function to generate stock information
 def get_chat_output(stock_info):
     if stock_info:
-        return html.Div([
-            html.H3("Real-time Stock Information", style={"color": "#2ecc71"}),
-            html.P(f"Company: {stock_info['longName']}"),
-            html.P(f"Symbol: {stock_info['symbol']}"),
-            html.P(f"Current Price: {stock_info['ask']}"),
-            html.P(f"Open: {stock_info['open']}"),
-            html.P(f"High: {stock_info['dayHigh']}"),
-            html.P(f"Low: {stock_info['dayLow']}")
-        ])
+        return html.Div(
+            [
+                html.H3("Real-time Stock Information", style={"color": "#2ecc71"}),
+                html.P(f"Company: {stock_info['longName']}"),
+                html.P(f"Symbol: {stock_info['symbol']}"),
+                html.P(f"Current Price: {stock_info['ask']}"),
+                html.P(f"Open: {stock_info['open']}"),
+                html.P(f"High: {stock_info['dayHigh']}"),
+                html.P(f"Low: {stock_info['dayLow']}"),
+            ]
+        )
     else:
-        return html.Div([
-            html.H3("Error", style={"color": "#e74c3c"}),
-            html.P("Invalid stock symbol or unable to fetch real-time information.")
-        ])
+        return html.Div(
+            [
+                html.H3("Error", style={"color": "#e74c3c"}),
+                html.P(
+                    "Invalid stock symbol or unable to fetch real-time information."
+                ),
+            ]
+        )
+
 
 # Run the app
 if __name__ == "__main__":
