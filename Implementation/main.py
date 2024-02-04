@@ -9,6 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 import io
 import base64
 import matplotlib.pyplot as plt
+import datetime
 
 # Function to fetch stock data
 def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
@@ -68,6 +69,14 @@ def predict_data(model, X_test):
 def inverse_transform(scaler, data):
     return scaler.inverse_transform(data)
 
+# Function to get real-time stock information
+def get_stock_info(symbol):
+    try:
+        stock_info = yf.Ticker(symbol).info
+        return stock_info
+    except:
+        return None
+
 # External CSS styles
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
@@ -79,25 +88,25 @@ app.layout = dcc.Loading(
     type="circle",
     children=[
         html.Div([
-            html.H1("Stock Price Prediction with LSTM", style={"textAlign": "center"}),
+            html.H1("Stock Price Prediction with LSTM", style={"textAlign": "center", "color": "#3498db"}),
 
             dcc.Input(id="symbol-input", type="text", value="AAPL", placeholder="Enter a stock symbol",
-                      style={"marginBottom": "10px"}),
+                      style={"marginBottom": "10px", "color": "#2c3e50"}),
 
             dcc.DatePickerRange(
                 id="date-picker",
                 start_date="2015-01-01",
                 end_date="2023-01-01",
                 display_format="YYYY-MM-DD",
-                style={"marginBottom": "10px", "marginLeft": "20px"}
+                style={"marginBottom": "10px", "marginLeft": "20px", "color": "#2c3e50"}
             ),
 
             dcc.Input(id="epoch-input", type="number", value=100, placeholder="Enter the number of epochs",
-                      style={"marginBottom": "10px", "marginLeft": "20px"}),
+                      style={"marginBottom": "10px", "marginLeft": "20px", "color": "#2c3e50"}),
 
-            html.Button("Search", id="search-button", n_clicks=0, style={"marginBottom": "20px", "marginLeft": "20px"}),
+            html.Button("Search", id="search-button", n_clicks=0, style={"marginBottom": "20px", "marginLeft": "20px", "background-color": "#2ecc71", "color": "#fff"}),
 
-            html.Div(id="company-info", style={"marginBottom": "20px"}),
+            html.Div(id="company-info", style={"marginBottom": "20px", "color": "#2c3e50"}),
 
             dcc.Graph(id="prediction-plot"),
 
@@ -107,19 +116,22 @@ app.layout = dcc.Loading(
                 download="prediction_graph.png",
                 href="",
                 target="_blank",
-                style={"marginLeft": "20px"}
+                style={"marginLeft": "20px", "background-color": "#e74c3c", "color": "#fff"}
             ),
             dcc.Graph(id="loss-plot"),
-        ], style={"width": "80%", "margin": "auto"})
+            
+            html.Div(id="chat-output", style={"marginTop": "20px"})
+        ], style={"width": "80%", "margin": "auto", "background-color": "#ecf0f1"})
     ]
 )
 
-# Update the company info and plot based on user input
+# Update the company info, plot, and real-time stock info based on user input
 @app.callback(
     [Output("company-info", "children"),
      Output("prediction-plot", "figure"),
      Output("download-link", "href"),
-     Output("loss-plot", "figure")],
+     Output("loss-plot", "figure"),
+     Output("chat-output", "children")],
     [Input("search-button", "n_clicks")],
     [State("symbol-input", "value"),
      State("date-picker", "start_date"),
@@ -185,15 +197,37 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         base64_img = base64.b64encode(img_data.read()).decode("utf-8")
         download_href = f"data:image/png;base64,{base64_img}"
 
-        # Update both outputs
+        # Update company info
         company_data = fetch_company_data(symbol)
         company_info = [html.P([html.H2(company_data["longName"]),
                                 html.P(company_data["longBusinessSummary"])])]
 
-        return company_info, figure, download_href, loss_figure
+        # Get real-time stock information
+        stock_info = get_stock_info(symbol)
+        chat_output = get_chat_output(stock_info)
+
+        return company_info, figure, download_href, loss_figure, chat_output
     else:
         # Return no update for all outputs if no clicks
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+# Function to generate stock information
+def get_chat_output(stock_info):
+    if stock_info:
+        return html.Div([
+            html.H3("Real-time Stock Information", style={"color": "#2ecc71"}),
+            html.P(f"Company: {stock_info['longName']}"),
+            html.P(f"Symbol: {stock_info['symbol']}"),
+            html.P(f"Current Price: {stock_info['ask']}"),
+            html.P(f"Open: {stock_info['open']}"),
+            html.P(f"High: {stock_info['dayHigh']}"),
+            html.P(f"Low: {stock_info['dayLow']}")
+        ])
+    else:
+        return html.Div([
+            html.H3("Error", style={"color": "#e74c3c"}),
+            html.P("Invalid stock symbol or unable to fetch real-time information.")
+        ])
 
 # Run the app
 if __name__ == "__main__":
