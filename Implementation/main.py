@@ -189,11 +189,6 @@ app.layout = html.Div(
         ),
         dcc.Graph(id="loss-plot",
                   style={"width": "80%", "margin": "auto", "paddingBottom": "20px", "paddingTop": "10px"}),
-        html.Div([
-            dcc.Textarea(id='chat-input-text', value='', placeholder='Type your message...'),
-            html.Button('Submit', id='chat-submit-button'),
-            html.Div(id='chat-output-text')
-        ])
     ],
     style={
         "width": "100%",
