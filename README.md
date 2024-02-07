@@ -24,7 +24,7 @@ This project is a web-based stock price prediction application built using Dash,
 - **Real-time Stock Information:** Retrieves real-time stock information using the Yahoo Finance API.
 
 ### Functionality
-- **Fetching Data** 
+- **Fetching Data**
     - **fetch_data(symbol, start_date, end_date):** Fetches historical stock data using Yahoo Finance API for the specified stock symbol and date range.
     - **fetch_company_data(symbol):** Fetches company information for the specified stock symbol.
 
@@ -60,6 +60,7 @@ Set your OpenAI API key:
 ```bash
 setx OPENAI_API_KEY "key"
 ```
+*If you don't have a key, you can obtain one here: https://platform.openai.com/api-keys
 
 ### How to run
 To run the application, simply run the main script:
