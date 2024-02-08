@@ -9,14 +9,6 @@ from sklearn.preprocessing import MinMaxScaler
 import io
 import base64
 import matplotlib.pyplot as plt
-import os
-from openai import OpenAI
-
-# colour palette 463f3a-8a817c-bcb8b1-f4f3ee-e0afa0
-
-# Set configs
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
 
 # Function to fetch stock data
 def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
@@ -25,13 +17,11 @@ def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
     stock_data["EMA"] = stock_data["Close"].ewm(span=12, adjust=False).mean()
     return stock_data
 
-
 # Function to fetch company data
 def fetch_company_data(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
     return info
-
 
 # Function to preprocess data
 def preprocess_data(stock_data, sequence_length=25):
@@ -50,7 +40,6 @@ def preprocess_data(stock_data, sequence_length=25):
 
     return X_train, X_test, y_train, y_test, scaler
 
-
 # Function to create sequences
 def create_sequences(data, sequence_length):
     sequences = []
@@ -58,7 +47,6 @@ def create_sequences(data, sequence_length):
         seq = data[i:i + sequence_length]
         sequences.append(seq)
     return np.array(sequences)
-
 
 # Function to build LSTM model
 def build_model(sequence_length):
@@ -68,21 +56,25 @@ def build_model(sequence_length):
     model.compile(optimizer="RMSprop", loss="mean_squared_error")
     return model
 
-
 # Function to train the model
 def train_model(model, X_train, y_train, epochs=100, batch_size=32):
     model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size)
-
 
 # Function to predict data
 def predict_data(model, X_test):
     return model.predict(X_test)
 
-
 # Function to inverse transform scaled data
 def inverse_transform(scaler, data):
     return scaler.inverse_transform(data)
 
+# Function to generate stock information
+def get_stock_info(symbol):
+    try:
+        stock_info = yf.Ticker(symbol).info
+        return stock_info
+    except:
+        return None
 
 # External CSS styles
 external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
@@ -187,6 +179,7 @@ app.layout = html.Div(
 
             style={"width": "80%", "margin": "auto", "textAlign": "center"},
         ),
+        html.Div(id="stock-info", style={"textAlign": "center", "color": "#463f3a", "fontWeight": "bold"}),
         dcc.Graph(id="loss-plot",
                   style={"width": "80%", "margin": "auto", "paddingBottom": "20px", "paddingTop": "10px"}),
     ],
@@ -196,11 +189,11 @@ app.layout = html.Div(
     },
 )
 
-
-# Update the company info and plot based on user input
+# Update the company info, plot, and real-time stock info based on user input
 @app.callback(
     [
         Output("company-info", "children"),
+        Output("stock-info", "children"),
         Output("prediction-plot", "figure"),
         Output("download-link", "href"),
         Output("loss-plot", "figure")
@@ -220,16 +213,16 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
         model = build_model(sequence_length=25)
 
-        # Train the model and get training history
+     # Train the model and get training history
         history = model.fit(X_train, y_train, epochs=epochs, batch_size=32)
 
-        # Get the predicted data and actual data
+     # Get the predicted data and actual data
         y_pred = predict_data(model, X_test)
         y_test_actual = inverse_transform(scaler, y_test)
         y_pred_actual = inverse_transform(scaler, y_pred)
         date_range = stock_data.index[-len(y_test):]
 
-        # Plotly graph for Dash
+     # Plotly graph for Dash
         figure = {
             "data": [
                 {"x": stock_data.index, "y": stock_data["EMA"], "type": "line", "name": "Dataset"},
@@ -244,7 +237,7 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
             }
         }
 
-        # Plotly graph for loss
+    # Plotly graph for loss
         loss_figure = {
             "data": [
                 {
@@ -262,7 +255,7 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
             }
         }
 
-        # Update download link
+     # Update download link
         img_data = io.BytesIO()
         plt.figure(figsize=(8, 6))
         plt.plot(stock_data.index, stock_data["EMA"], label="Dataset")
@@ -277,17 +270,30 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         base64_img = base64.b64encode(img_data.read()).decode("utf-8")
         download_href = f"data:image/png;base64,{base64_img}"
 
-        # Update both outputs
+    # Update both outputs
         company_data = fetch_company_data(symbol)
         company_info = [html.P([html.H2(company_data["longName"]),
                                 html.P(company_data["longBusinessSummary"])])]
 
-        return company_info, figure, download_href, loss_figure
-    else:
-        # Return no update for all outputs if no clicks
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    # Get real-time stock information
+        stock_info = get_stock_info(symbol)
+        stock_info_display = []
+        if stock_info:
+            stock_info_display.append(html.P(f"Real-time Stock Price of {stock_info['longName']}"))
+            stock_info_display.append(html.P(f"Symbol: {stock_info['symbol']}"))
+            stock_info_display.append(html.P(f"Current Price: {stock_info['ask']}"))
+            stock_info_display.append(html.P(f"Open: {stock_info['open']}"))
+            stock_info_display.append(html.P(f"High: {stock_info['dayHigh']}"))
+            stock_info_display.append(html.P(f"Low: {stock_info['dayLow']}"))
 
+        return company_info, stock_info_display, figure, download_href, loss_figure
+    else:
+    # Return no update for all outputs if no clicks
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 # Run the app
 if __name__ == "__main__":
     app.run_server(debug=True)
+
+# colour palette 463f3a-8a817c-bcb8b1-f4f3ee-e0afa0
+
