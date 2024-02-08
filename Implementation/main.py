@@ -9,6 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 import io
 import base64
 import matplotlib.pyplot as plt
+import openai
 
 # Function to fetch stock data
 def fetch_data(symbol, start_date="2015-01-01", end_date="2023-01-01"):
@@ -188,6 +189,28 @@ app.layout = html.Div(
         "background-color": "#f4f3ee"
     },
 )
+# Set your OpenAI API key
+openai.api_key = "your_openai_api_key"
+
+# Function to ask questions to ChatGPT
+def ask_chatgpt(question):
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-002",  # Choose an appropriate engine
+            prompt=f"Ask GPT: {question}",
+            max_tokens=150,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        return f"Error in asking ChatGPT: {str(e)}"
+
+
+
+
+
 
 # Update the company info, plot, and real-time stock info based on user input
 @app.callback(
@@ -212,6 +235,10 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
         stock_data = fetch_data(symbol, start_date, end_date)
         X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
         model = build_model(sequence_length=25)
+
+     # Ask a question to ChatGPT
+        chatgpt_question = f"What can you tell me about {symbol_input} stocks?"
+        chatgpt_response = ask_chatgpt(chatgpt_question) 
 
      # Train the model and get training history
         history = model.fit(X_train, y_train, epochs=epochs, batch_size=32)
@@ -286,7 +313,7 @@ def update_company_and_plot(n_clicks, symbol_input, start_date, end_date, epochs
             stock_info_display.append(html.P(f"High: {stock_info['dayHigh']}"))
             stock_info_display.append(html.P(f"Low: {stock_info['dayLow']}"))
 
-        return company_info, stock_info_display, figure, download_href, loss_figure
+        return company_info, stock_info_display, figure, download_href, loss_figure, html.P(f"ChatGPT Response: {chatgpt_response}"),  # Display ChatGPT response 
     else:
     # Return no update for all outputs if no clicks
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
