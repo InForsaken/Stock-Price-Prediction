@@ -47,20 +47,21 @@ Make sure you have the following Python packages installed:
 - numpy
 - yfinance
 - dash
-- keras
+- tensorflow
 - scikit-learn
 - matplotlib
 - openai
 
 Install the packages using:
 ```bash
-pip install numpy yfinance dash keras scikit-learn matplotlib openai
+pip install numpy yfinance dash tensorflow scikit-learn matplotlib openai
 ```
 Set your OpenAI API key:
 ```bash
 setx OPENAI_API_KEY "key"
 ```
 *If you don't have a key, you can obtain one here: https://platform.openai.com/api-keys
+*You must have an active OpenAI API balance to use this software
 
 ### How to run
 To run the application, simply run the main script:
@@ -68,7 +69,6 @@ To run the application, simply run the main script:
 py main.py
 ```
 The application will start a local server and you can view the application by navigating to ```http://127.0.0.1:8050/``` in your web browser.
-
 
 ### Usage
 Dash Application
