@@ -21,6 +21,9 @@ secondary2 = "#e0afa0"
 
 # Set configs
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+if not os.environ.get("OPENAI_API_KEY"):
+    print("Error: You currently do not have an OpenAI API key set. Please check "
+          "the README.md file in the project directory for more information.")
 
 
 # Function to fetch stock data
@@ -99,7 +102,6 @@ def get_stock_info(symbol):
 
 
 # Function make a call to the OpenAI API to generate a response
-# "You are an information board providing stock information to the users."
 def generate_response(request):
     context = "You are a stock analyst assistant who provides stock information to the user."
     completion = client.chat.completions.create(
@@ -293,16 +295,22 @@ app.layout = html.Div(
 )
 def update_company(n_clicks, symbol_input):
     if n_clicks > 0:
+        print("Action: Updating company information.")
         # Fetch information about the company
         company_data = fetch_company_data(symbol_input)
 
         # Summarise long summary
-        summary = generate_response("Summarise in a short paragraph: " + company_data["longBusinessSummary"])
+        try:
+            summary = generate_response("Summarise in a short paragraph: " + company_data["longBusinessSummary"])
+            company_info = [html.P([html.H2(company_data["longName"]),
+                                    html.P(summary)])]
+            print("Output: Returning OpenAPI call results: Summary.")
+        except:
+            print("Request Denied: OpenAI API request cannot be completed. Please check "
+                  "the README.md file in the project directory for more information.")
+            company_info = [html.P([html.H2(company_data["longName"])])]
 
-        # Create element to hold information
-        company_info = [html.P([html.H2(company_data["longName"]),
-                                html.P(summary)])]
-
+        print("Action: Updating response in ChatBot input.")
         # Prompt for stock symbol
         promt = ("Evaluate important events that caused the stock price of " + company_data["longName"]
                  + " (" + symbol_input + ") to change.")
@@ -333,6 +341,8 @@ def update_company(n_clicks, symbol_input):
 )
 def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs):
     if n_clicks > 0:
+        print("Action: Processing stock data.")
+        # Fetching and preprocessing data
         symbol = symbol_input.upper()
         stock_data = fetch_data(symbol, start_date, end_date)
         X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
@@ -347,6 +357,7 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs):
         y_pred_actual = inverse_transform(scaler, y_pred)
         date_range = stock_data.index[-len(y_test):]
 
+        print("Action: Plotting graphs using prediction data.")
         # Plotly graph for Dash
         figure = {
             "data": [
@@ -395,6 +406,7 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs):
         base64_img = base64.b64encode(img_data.read()).decode("utf-8")
         download_href = f"data:image/png;base64,{base64_img}"
 
+        print("Action: Updating real-time stock information.")
         # Get real-time stock information
         stock_info = get_stock_info(symbol)
         current_stock = html.Div(f"Real-time Stock Price of {stock_info['longName']}",
@@ -426,9 +438,15 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs):
 )
 def user_chat(n_clicks, input_text):
     if n_clicks is not None:
+        print("Action: Generating a response from OpenAI API.")
         # Send user input to function to call API
-        output = generate_response(input_text)
-        return output
+        try:
+            output = generate_response(input_text)
+            print("Output: Returning OpenAI API call result: ChatBox.")
+            return output
+        except:
+            print("Request Denied: OpenAI API request cannot be completed. Please check "
+                  "the README.md file in the project directory for more information.")
 
 
 # Run the app
