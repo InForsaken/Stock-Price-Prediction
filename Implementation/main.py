@@ -20,8 +20,10 @@ secondary1 = "#f4f3ee"
 secondary2 = "#e0afa0"
 
 # Set configs
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-if not os.environ.get("OPENAI_API_KEY"):
+try:
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    print("Request Accepted: OpenAI API key accepted.")
+except:
     print("Error: You currently do not have an OpenAI API key set. Please check "
           "the README.md file in the project directory for more information.")
 
@@ -308,9 +310,10 @@ def update_company(n_clicks, symbol_input):
         except:
             print("Request Denied: OpenAI API request cannot be completed. Please check "
                   "the README.md file in the project directory for more information.")
-            company_info = [html.P([html.H2(company_data["longName"])])]
-
+            company_info = [html.P([html.H2(company_data["longName"]),
+                                    html.P(company_data["longBusinessSummary"])])]
         print("Action: Updating response in ChatBot input.")
+        
         # Prompt for stock symbol
         promt = ("Evaluate important events that caused the stock price of " + company_data["longName"]
                  + " (" + symbol_input + ") to change.")
