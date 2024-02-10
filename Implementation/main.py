@@ -79,21 +79,23 @@ def update_company(n_clicks, symbol_input):
         State("symbol-input", "value"),
         State("date-picker", "start_date"),
         State("date-picker", "end_date"),
-        State("epoch-input", "value")
+        State("epoch-input", "value"),
+        State("sequence-input", "value"),
+        State("batch-input", "value")
     ]
 )
-def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs):
+def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs,sequence,batch):
     if n_clicks > 0:
         print("Action: Processing stock data.")
         # Fetching and preprocessing data
         symbol = symbol_input.upper()
         stock_data = fetch_data(symbol, start_date, end_date)
         X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
-        model = build_model(sequence_length=25)
-
+        model = build_model(sequence_length=sequence)
+        # print(sequence)
         # Train the model and get training history
-        history = model.fit(X_train, y_train, epochs=epochs, batch_size=32)
-
+        history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch)
+        # print(batch)
         # Get the predicted data and actual data
         y_pred = predict_data(model, X_test)
         y_test_actual = inverse_transform(scaler, y_test)
