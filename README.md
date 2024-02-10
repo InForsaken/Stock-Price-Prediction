@@ -22,6 +22,7 @@ This project is a web-based stock price prediction application built using Dash,
 - **LSTM Model Training:** Constructs and trains an LSTM model using the Keras library.
 - **Interactive Web Interface:** Provides a user-friendly interface with Dash for inputting parameters and viewing predictions.
 - **Real-time Stock Information:** Retrieves real-time stock information using the Yahoo Finance API.
+- **ChatBox:** Allows the user to converse with a Chat bot regarding any queries they have.
 
 ### Functionality
 - **Fetching Data**
@@ -60,8 +61,14 @@ Set your OpenAI API key:
 ```bash
 setx OPENAI_API_KEY "key"
 ```
-*If you don't have a key, you can obtain one here: https://platform.openai.com/api-keys
-*You must have an active OpenAI API balance to use this software
+*If you don't have a key, you can obtain one here: https://platform.openai.com/api-keys <br>
+*You must have an active OpenAI API balance to use this software <br>
+If you have any issues with path lenght while setting up Tensorflow,
+run the following command on Windows PowerShell:
+```bash
+New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+-Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+```
 
 ### How to run
 To run the application, simply run the main script:
@@ -77,8 +84,9 @@ The Dash application provides a user interface for interacting with the model:
 2. Select a date range using the date picker.
 3. Specify the number of epochs for model training.
 4. Click the "Search" button to view the stock price predictions.
+5. Press Submit to enable the ChatBot
 
 ### Notes
-Ensure a stable internet connection to fetch real-time stock information.
-Some stock symbols may not be available or may have limited past data.
+Ensure a stable internet connection to fetch real-time stock information.<br>
+Some stock symbols may not be available or may have limited past data.<br>
 Adjusting the number of  epochs may affect the model's accuracy and training time.
