@@ -1,14 +1,12 @@
 import base64
 import io
-
 import dash
 import matplotlib.pyplot as plt
 from dash import html
 from dash.dependencies import (Input, Output, State)
-
 import application
 from actions import (colors, fetch_data, fetch_company_data, preprocess_data, build_model,
-                     predict_data, inverse_transform, get_stock_info, generate_response)
+                     predict_data, inverse_transform, get_stock_info, generate_response, dark_mode)
 
 # Set colors used for the webpage
 primary1, primary2, primary3, secondary1, secondary2 = colors()
@@ -152,6 +150,7 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs,se
         download_href = f"data:image/png;base64,{base64_img}"
 
         print("Action: Updating real-time stock information.")
+
         # Get real-time stock information
         stock_info = get_stock_info(symbol)
         current_stock = html.Div(f"Real-time Stock Price of {stock_info['longName']}",
@@ -162,18 +161,17 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs,se
         stock_info_display = []
         if stock_info:
             styles = {"padding": "10px", "background": primary1, "borderRadius": "5px"}
-            stock_info_display = [
+            stock_info_display = [  
                 html.Div(f"Current Price: {stock_info['ask']}", style=styles),
                 html.Div(f"Open: {stock_info['open']}", style=styles),
-                html.Div(f"Low: {stock_info['dayLow']}", style=styles),
-                html.Div(f"High: {stock_info['dayHigh']}", style=styles),
+                html.Div(f"Low: {stock_info['dayLow']}", style={**styles, 'background-color': '#ff0000'}),
+                html.Div(f"High: {stock_info['dayHigh']}", style={**styles, 'background-color': '#008000'}),
             ]
 
         # Return updates
         return figure, download_href, current_stock, stock_info_display, loss_figure
     else:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
-
 
 # Used for ChatGPT ChatBox
 @app.callback(
@@ -193,7 +191,6 @@ def user_chat(n_clicks, input_text):
                       "the README.md file in the project directory for more information.")
             print(output)
         return output
-
 
 # Run the app
 if __name__ == "__main__":
