@@ -2,8 +2,8 @@ import os
 
 import numpy as np
 import yfinance as yf
-from keras.layers import LSTM, Dense
 from keras.models import Sequential
+from keras.layers import LSTM, Dropout, Dense
 from openai import OpenAI
 from sklearn.preprocessing import MinMaxScaler
 
@@ -64,8 +64,18 @@ def create_sequences(data, sequence_length):
 # Build LSTM model
 def build_model(sequence_length):
     model = Sequential()
+
+    # First Layer
+    model.add(LSTM(150, activation="relu", input_shape=(sequence_length, 1), return_sequences=True))
+    model.add(Dropout(0.2))
+
+    # Second Layer
     model.add(LSTM(150, activation="relu", input_shape=(sequence_length, 1)))
-    model.add(Dense(1))
+    model.add(Dropout(0.2))
+
+    # Dense Layer
+    model.add(Dense(1, activation="relu"))
+
     model.compile(optimizer="RMSprop", loss="mean_squared_error")
     return model
 
