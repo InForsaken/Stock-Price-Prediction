@@ -8,7 +8,7 @@ from dash.dependencies import (Input, Output, State)
 
 import application
 from actions import (colors, fetch_data, fetch_company_data, preprocess_data, build_model,
-                     predict_data, inverse_transform, get_stock_info, generate_response)
+                     predict_data, inverse_transform, get_stock_info, generate_response,calculate_historical_volatility)
 
 # Set colors used for the webpage
 primary1, primary2, primary3, secondary1, secondary2 = colors()
@@ -96,7 +96,8 @@ def update_company(n_clicks, symbol_input):
     [
         Output("prediction-plot", "figure"),
         Output("download-link", "href"),
-        Output("loss-plot", "figure")
+        Output("loss-plot", "figure"),
+        Output("historical-volatility-plot", "figure")  # Add this output
     ],
     [Input("search-button", "n_clicks")],
     [
@@ -110,7 +111,6 @@ def update_company(n_clicks, symbol_input):
 )
 def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs, sequence, batch):
     if n_clicks > 0:
-        print("Action: Processing stock data.")
         # Fetching and preprocessing data
         symbol = symbol_input.upper()
         stock_data = fetch_data(symbol, start_date, end_date)
@@ -126,7 +126,6 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs, s
         y_pred_actual = inverse_transform(scaler, y_pred)
         date_range = stock_data.index[-len(y_test):]
 
-        print("Action: Plotting graphs using prediction data.")
         # Plotly graph for Dash
         figure = {
             "data": [
@@ -160,6 +159,22 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs, s
             }
         }
 
+        # Calculate historical volatility
+        historical_volatility = calculate_historical_volatility(stock_data)
+
+        # Plotly graph for historical volatility
+        volatility_figure = {
+            "data": [
+                {"x": historical_volatility.index, "y": historical_volatility, "type": "line", "name": "Historical Volatility"}
+            ],
+            "layout": {
+                "xaxis": {"title": "Date"},
+                "yaxis": {"title": "Volatility"},
+                "title": f"{symbol} Historical Volatility",
+                "legend": {"x": 0, "y": 1}
+            }
+        }
+
         # Update download link
         img_data = io.BytesIO()
         plt.figure(figsize=(8, 6))
@@ -176,9 +191,10 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs, s
         download_href = f"data:image/png;base64,{base64_img}"
 
         # Return updates
-        return figure, download_href, loss_figure
+        return figure, download_href, loss_figure, volatility_figure
     else:
-        return dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
 
 
 # Used for ChatGPT ChatBox

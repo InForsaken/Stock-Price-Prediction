@@ -192,14 +192,18 @@ web_app = html.Div(
             style={"width": "80%", "margin": "auto", "marginTop": "20px", "paddingBottom": "10px",
                    "background": primary1, "borderRadius": "15px", "textAlign": "center"}
         ),
-
-        # Display extra information for user
+        # Displaying additional info about the Stock and the prediction
+        html.Div([
         dcc.Loading(
             type="circle",
             children=[
+                dcc.Graph(id="historical-volatility-plot",
+                        style={"width": "80%", "margin": "auto", "paddingBottom": "10px", "paddingTop": "20px"}),
                 dcc.Graph(id="loss-plot",
-                          style={"width": "80%", "margin": "auto", "paddingBottom": "10px", "paddingTop": "20px"})]
+                    style={"width": "80%", "margin": "auto", "paddingBottom": "10px", "paddingTop": "5px"})
+            ]
         )
+    ]),
     ],
     style={
         "width": "100%",

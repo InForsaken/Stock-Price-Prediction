@@ -6,6 +6,7 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dropout, Dense
 from openai import OpenAI
 from sklearn.preprocessing import MinMaxScaler
+import numpy as np
 
 # Set configs
 dark_mode = False
@@ -120,3 +121,13 @@ def generate_response(request):
         ],
     )
     return completion.choices[0].message.content
+
+# Calculate historical volatility
+def calculate_historical_volatility(stock_data, window=252):
+    # Calculate daily returns
+    daily_returns = stock_data['Close'].pct_change()
+    
+    # Calculate historical volatility
+    historical_volatility = daily_returns.rolling(window=window).std() * np.sqrt(window)
+    
+    return historical_volatility
