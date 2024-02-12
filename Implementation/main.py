@@ -78,10 +78,10 @@ def update_company(n_clicks, symbol_input):
         if stock_info:
             styles = {"padding": "10px", "background": primary1, "borderRadius": "5px"}
             stock_info_display = [
-                html.Div(f"Current Price: {stock_info['ask']}", style=styles),
-                html.Div(f"Open: {stock_info['open']}", style=styles),
-                html.Div(f"Low: {stock_info['dayLow']}", style={**styles, "color": "#ff0000"}),
-                html.Div(f"High: {stock_info['dayHigh']}", style={**styles, "color": "#008000"})
+                html.Div(f"Current Price: {stock_info['ask']:.2f}", style=styles),
+                html.Div(f"Open: {stock_info['open']:.2f}", style=styles),
+                html.Div(f"Low: {stock_info['dayLow']:.2f}", style={**styles, "color": "#ff0000"}),
+                html.Div(f"High: {stock_info['dayHigh']:.2f}", style={**styles, "color": "#008000"})
             ]
 
         # Return updates
