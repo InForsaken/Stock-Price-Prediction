@@ -1,12 +1,10 @@
 import os
-
 import numpy as np
 import yfinance as yf
+from keras.layers import LSTM, Dense
 from keras.models import Sequential
-from keras.layers import LSTM, Dropout, Dense
 from openai import OpenAI
 from sklearn.preprocessing import MinMaxScaler
-import numpy as np
 
 # Set configs
 dark_mode = False
@@ -65,18 +63,8 @@ def create_sequences(data, sequence_length):
 # Build LSTM model
 def build_model(sequence_length):
     model = Sequential()
-
-    # First Layer
-    model.add(LSTM(150, activation="relu", input_shape=(sequence_length, 1), return_sequences=True))
-    model.add(Dropout(0.2))
-
-    # Second Layer
     model.add(LSTM(150, activation="relu", input_shape=(sequence_length, 1)))
-    model.add(Dropout(0.2))
-
-    # Dense Layer
-    model.add(Dense(1, activation="relu"))
-
+    model.add(Dense(1))
     model.compile(optimizer="RMSprop", loss="mean_squared_error")
     return model
 
@@ -122,12 +110,7 @@ def generate_response(request):
     )
     return completion.choices[0].message.content
 
-# Calculate historical volatility
-def calculate_historical_volatility(stock_data, window=252):
-    # Calculate daily returns
-    daily_returns = stock_data['Close'].pct_change()
-    
-    # Calculate historical volatility
-    historical_volatility = daily_returns.rolling(window=window).std() * np.sqrt(window)
-    
-    return historical_volatility
+# Dark mode
+def toggle_dark_mode():
+    global dark_mode
+    dark_mode = not dark_mode
