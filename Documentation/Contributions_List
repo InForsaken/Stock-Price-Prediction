@@ -1,9 +1,66 @@
 Giri Kankatharan
+    Poster
+    Abstract
+    Research
+    Real-time stock price
+    Team management
+    Setting/Transcribing meetings
+    Taking minutes for meeting
+    Initial UI designs
+    Graph loading
+    Commented Code
+
+    Assisted in:
+        ReadMe.md
+
 
 Oliver Pulley
+    Initial UI designs
+    Poster
+    Abstract
+    Research
+
 
 Rishabh Soni
+    Normalization
+    Added EMA
+    Initialise Dash app
+    Added input param for Dash
+    Created directories for version control
+    Added loss and history volatiity graphs
+    Merged actual+predicted prices to graph
+    Graph loading/downloading
+    Improved UI
+    Implemented chatbox
+    Promting for OpenAI
+    Commented Code
+
+    Assisted in:
+        Implementing OpenAI API + Functions
+        Adding grid to real-time stock price
+        ReadMe.md
+        Poster
+
 
 Reece McDermott
 
+
 Steven Li
+    Build the LSTM model
+    Initialised/Managed version control
+    Formatted/Partitioned code
+    ReadMe.md
+    Added input param for model
+    Implemented OpenAI API + Functions
+    Modified and added elements to ui
+    Improved callback functionality
+    Added gridding for real-time stock price
+    Implementing GPT summarise stock description
+    Added graphing functionality
+    Added debug messages
+    Commented Code
+    
+    Assisted in:
+        Poster
+
+
