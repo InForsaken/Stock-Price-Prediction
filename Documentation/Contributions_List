@@ -6,7 +6,7 @@ Giri Kankatharan
     Team management
     Setting/Transcribing meetings
     Taking minutes for meeting
-    Initial UI designs
+    Initial UI designs and implementation for Dash interface
     Graph loading
     Commented Code
     Creating the technical report template and delegating the sections of the report
@@ -17,7 +17,7 @@ Giri Kankatharan
 
 
 Oliver Pulley
-    Initial UI designs
+    Initial UI designs for the original user inerface(before initalising Dash)
     Poster
     Abstract
     Research
@@ -46,8 +46,8 @@ Rishabh Soni
 
 Reece McDermott
     Assisted in:
-        Attempted Research
-        Attempted ChatGpt
+        Very Limited Research  
+        Attempted ChatGpt - generic code for example - there was not a specfic API key 
 
 
 Steven Li
