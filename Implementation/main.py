@@ -1,12 +1,14 @@
 import base64
 import io
+
 import dash
 import matplotlib.pyplot as plt
 from dash import html
 from dash.dependencies import (Input, Output, State)
+
 import application
 from actions import (colors, fetch_data, fetch_company_data, preprocess_data, build_model,
-                     predict_data, inverse_transform, get_stock_info, generate_response, toggle_dark_mode, dark_mode)
+                     predict_data, inverse_transform, get_stock_info, generate_response,calculate_historical_volatility)
 
 # Set colors used for the webpage
 primary1, primary2, primary3, secondary1, secondary2 = colors()
@@ -25,7 +27,9 @@ app.layout = application.web_app
 @app.callback(
     [
         Output("company-info", "children"),
-        Output("chat-input-text", "value")
+        Output("chat-input-text", "value"),
+        Output("rt-stock-info", "children"),
+        Output("stock-info", "children")
     ],
     [Input("search-button", "n_clicks")],
     [
@@ -50,17 +54,41 @@ def update_company(n_clicks, symbol_input):
                                     html.P(company_data["longBusinessSummary"])])]
             print("Request Denied: OpenAI API request cannot be completed. Please check "
                   "the README.md file in the project directory for more information.")
-        print("Action: Updating response in ChatBot input.")
 
+        print("Action: Updating response in ChatBot input.")
         # Prompt for stock symbol
         promt = ("Evaluate important events that caused the stock price of " + company_data["longName"]
                  + " (" + symbol_input + ") to change.")
 
+        print("Action: Updating real-time stock information.")
+        # Get real-time stock information
+        stock_info = get_stock_info(symbol_input)
+        current_stock = html.Div(f"Real-time Stock Price of {stock_info['longName']}",
+                                 style={"paddingTop": "5px",
+                                        "paddingBottom": "5px",
+                                        "background": primary2,
+                                        "color": secondary1,
+                                        "borderRadius": "5px",
+                                        "textAlign": "center",
+                                        "width": "80%",
+                                        "margin": "auto",
+                                        "font-weight": "bold"})
+
+        stock_info_display = []
+        if stock_info:
+            styles = {"padding": "10px", "background": primary1, "borderRadius": "5px"}
+            stock_info_display = [
+                html.Div(f"Current Price: {stock_info['ask']:.2f}", style=styles),
+                html.Div(f"Open: {stock_info['open']:.2f}", style=styles),
+                html.Div(f"Low: {stock_info['dayLow']:.2f}", style={**styles, "color": "#ff0000"}),
+                html.Div(f"High: {stock_info['dayHigh']:.2f}", style={**styles, "color": "#008000"})
+            ]
+
         # Return updates
         if company_info:
-            return company_info, promt
+            return company_info, promt, current_stock, stock_info_display,
     else:
-        return dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 # Update the company info, plot, and real-time stock info based on user input
@@ -68,9 +96,8 @@ def update_company(n_clicks, symbol_input):
     [
         Output("prediction-plot", "figure"),
         Output("download-link", "href"),
-        Output("rt-stock-info", "children"),
-        Output("stock-info", "children"),
         Output("loss-plot", "figure"),
+        Output("historical-volatility-plot", "figure")  # Add this output
     ],
     [Input("search-button", "n_clicks")],
     [
@@ -82,31 +109,29 @@ def update_company(n_clicks, symbol_input):
         State("batch-input", "value")
     ]
 )
-def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs,sequence,batch):
+def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs, sequence, batch):
     if n_clicks > 0:
-        print("Action: Processing stock data.")
         # Fetching and preprocessing data
         symbol = symbol_input.upper()
         stock_data = fetch_data(symbol, start_date, end_date)
         X_train, X_test, y_train, y_test, scaler = preprocess_data(stock_data)
         model = build_model(sequence_length=sequence)
-        # print(sequence)
+
         # Train the model and get training history
         history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch)
-        # print(batch)
+
         # Get the predicted data and actual data
         y_pred = predict_data(model, X_test)
         y_test_actual = inverse_transform(scaler, y_test)
         y_pred_actual = inverse_transform(scaler, y_pred)
         date_range = stock_data.index[-len(y_test):]
 
-        print("Action: Plotting graphs using prediction data.")
         # Plotly graph for Dash
         figure = {
             "data": [
                 {"x": stock_data.index, "y": stock_data["EMA"], "type": "line", "name": "Dataset"},
                 {"x": date_range, "y": y_test_actual.flatten(), "type": "line", "name": "Actual Data"},
-                {"x": date_range, "y": y_pred_actual.flatten(), "type": "line", "name": "Predicted EMA"},
+                {"x": date_range, "y": y_pred_actual.flatten(), "type": "line", "name": "Predicted EMA"}
             ],
             "layout": {
                 "xaxis": {"title": "Date"},
@@ -124,12 +149,28 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs,se
                     "y": history.history["loss"],
                     "type": "line",
                     "name": "Training Loss"
-                },
+                }
             ],
             "layout": {
                 "xaxis": {"title": "Epoch"},
                 "yaxis": {"title": "Loss"},
                 "title": "Training Loss Over Time",
+                "legend": {"x": 0, "y": 1}
+            }
+        }
+
+        # Calculate historical volatility
+        historical_volatility = calculate_historical_volatility(stock_data)
+
+        # Plotly graph for historical volatility
+        volatility_figure = {
+            "data": [
+                {"x": historical_volatility.index, "y": historical_volatility, "type": "line", "name": "Historical Volatility"}
+            ],
+            "layout": {
+                "xaxis": {"title": "Date"},
+                "yaxis": {"title": "Volatility"},
+                "title": f"{symbol} Historical Volatility",
                 "legend": {"x": 0, "y": 1}
             }
         }
@@ -149,29 +190,12 @@ def update_plot_and_info(n_clicks, symbol_input, start_date, end_date, epochs,se
         base64_img = base64.b64encode(img_data.read()).decode("utf-8")
         download_href = f"data:image/png;base64,{base64_img}"
 
-        print("Action: Updating real-time stock information.")
-
-        # Get real-time stock information
-        stock_info = get_stock_info(symbol)
-        current_stock = html.Div(f"Real-time Stock Price of {stock_info['longName']}",
-                                 style={"paddingTop": "5px", "paddingBottom": "5px", "background": primary2,
-                                        "color": secondary1, "borderRadius": "5px", "textAlign": "center",
-                                        "width": "80%", "margin": "auto", "font-weight": "bold"})
-
-        stock_info_display = []
-        if stock_info:
-            styles = {"padding": "10px", "background": primary1, "borderRadius": "5px"}
-            stock_info_display = [  
-                html.Div(f"Current Price: {stock_info['ask']}", style=styles),
-                html.Div(f"Open: {stock_info['open']}", style=styles),
-                html.Div(f"Low: {stock_info['dayLow']}", style={**styles, 'color': '#ff0000'}),
-                html.Div(f"High: {stock_info['dayHigh']}", style={**styles, 'color': '#00cc00'}),
-            ]
-
         # Return updates
-        return figure, download_href, current_stock, stock_info_display, loss_figure
+        return figure, download_href, loss_figure, volatility_figure
     else:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+
 
 # Used for ChatGPT ChatBox
 @app.callback(
@@ -192,17 +216,7 @@ def user_chat(n_clicks, input_text):
             print(output)
         return output
 
-# Define callback to update layout based on dark mode status
-@app.callback(
-    Output("output", "children"),
-    [Input("toggle-dark-mode", "n_clicks")]
-)
-def update_output(n_clicks):
-    toggle_dark_mode()
-    return [html.Div(f"Dark mode is {'enabled' if dark_mode else 'disabled'}.")]
 
 # Run the app
 if __name__ == "__main__":
     app.run_server(debug=True)
-
-# colour palette 463f3a-8a817c-bcb8b1-f4f3ee-e0afa0
