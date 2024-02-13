@@ -14,7 +14,7 @@
 ## Overview
 
 ### Description
-This project is a web-based stock price prediction application built using Dash, Keras, and other Python libraries. The application allows users to input a stock symbol, select a date range, and specify the number of epochs for training an LSTM (Long Short-Term Memory) model. The predicted stock prices are visualized along with additional information such as company details and real-time stock information.
+This project is a web-based stock price prediction application built using Dash, Keras, and other Python libraries. The application allows users to input a stock symbol, select a date range, and specify the number of epochs, batch size and sequence length for training an LSTM (Long Short-Term Memory) model. The predicted stock prices are visualized along with additional information such as company details and real-time stock information.
 
 ### Features
 - **Stock Data Fetching:** Utilizes the Yahoo Finance API (`yfinance`) to fetch historical stock data.
@@ -63,7 +63,7 @@ setx OPENAI_API_KEY "key"
 ```
 *If you don't have a key, you can obtain one here: https://platform.openai.com/api-keys <br>
 *You must have an active OpenAI API balance to use this software <br>
-If you have any issues with path lenght while setting up Tensorflow,
+If you have any issues with path length while setting up Tensorflow,
 run the following command on Windows PowerShell:
 ```bash
 New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
@@ -82,11 +82,10 @@ Dash Application
 The Dash application provides a user interface for interacting with the model:
 1. Enter a stock symbol in the input field.
 2. Select a date range using the date picker.
-3. Specify the number of epochs for model training.
-4. Click the "Search" button to view the stock price predictions.
-5. Press Submit to enable the ChatBot
+3. Specify the number of epochs, batch size and sequence length for model training.
+4. Click the "Search" button to view the stock price predictions and enable the AI-powered chatbot.
 
 ### Notes
 Ensure a stable internet connection to fetch real-time stock information.<br>
 Some stock symbols may not be available or may have limited past data.<br>
-Adjusting the number of  epochs may affect the model's accuracy and training time.
+Adjusting the number of epochs may affect the model's accuracy and training time.
